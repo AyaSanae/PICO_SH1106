@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "stdint.h": "c",
+        "stdio.h": "c",
+        "*.tcc": "c",
+        "cmath": "c",
+        "numeric": "c",
+        "cinttypes": "c",
+        "cstdlib": "c",
+        "*.def": "c",
+        "cctype": "c",
+        "cstring": "c"
+    }
+}

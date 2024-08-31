@@ -9,9 +9,13 @@
 #include "pico/time.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
 #include "hardware/dma.h"
+
+dma_channel_config OLED_dma_config;
+int OLED_dma_chan;
 
 // Function to get the absolute value of a signed integer
 static inline int_fast16_t tool_Fast_abs(int_fast16_t t) {
@@ -59,14 +63,14 @@ static inline int OLED_WriteCmd(uint8_t cmd) {
 }
 
 // Write a list of commands to the OLED
-void OLED_WriteCmdList(uint8_t *list, unsigned int num) {
+static inline void OLED_WriteCmdList(uint8_t *list, unsigned int num) {
     for (unsigned int i = 0; i < num; i++) {
         OLED_WriteCmd(list[i]); // Send each command
     }
 }
 
 // Clear the display by filling it with black
-static void OLED_Clear() {
+void OLED_Clear() {
     OLED_Fill_Screen_Pure(0x00);
 }
 
@@ -82,7 +86,7 @@ static inline void OLED_Fill_Screen_Pure(uint8_t color) {
 }
 
 // Render an array of pixel data to the OLED
-static void OLED_RenderArray(uint8_t *buf, uint16_t num) {
+void OLED_RenderArray(uint8_t *buf, uint16_t num) {
     if (buf == NULL || num == 0) return; // Check for valid buffer
     
     OLED_Set_Page(0); // Set to the first page
@@ -123,7 +127,7 @@ static void OLED_RenderArray(uint8_t *buf, uint16_t num) {
 }
 
 // Render the complete frame to the OLED
-static void OLED_RenderFrame(uint8_t *frame) {
+void OLED_RenderFrame(uint8_t *frame) {
     if (frame == NULL) return; // Check for valid frame
 
     uint8_t *buf0 = malloc(OLED_WIDTH + 1); // Allocate buffer
@@ -168,7 +172,7 @@ static inline void OLED_RenderFrame_DMA(uint8_t *frame) {
 }
 
 // Clear and render the frame via DMA
-static inline void OLED_RenderFrame_DMA_Clear(uint8_t *frame) {
+void OLED_RenderFrame_DMA_Clear(uint8_t *frame) {
     OLED_RenderFrame_DMA(frame); // Render the frame
     OLED_initFrame(frame); // Initialize the frame (clear it)
 }
@@ -181,7 +185,7 @@ static inline void OLED_Set_Page(uint8_t page) {
 }
 
 // Initialize the frame buffer to 0 (clear)
-static inline void OLED_initFrame(uint8_t *frame) {
+void OLED_initFrame(uint8_t *frame) {
     memset(frame, 0x00, OLED_SIZE_BYTE); // Clear the frame buffer
 }
 
@@ -198,7 +202,7 @@ static inline void OLED_setPixel(uint8_t *frame, int_fast8_t x, int_fast8_t y, u
 }
 
 // Draw a line using Bresenham's algorithm
-static inline void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_t x1, int_fast16_t y1, uint8_t on) {
+void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_t x1, int_fast16_t y1, uint8_t on) {
     int_fast16_t dx = tool_Fast_abs(x1 - x0);
     int_fast16_t sx = x0 < x1 ? 1 : -1; // Determine the step direction
     int_fast16_t dy = -tool_Fast_abs(y1 - y0);
@@ -231,7 +235,7 @@ static inline int_fast16_t OLED_GetFontIndex(uint8_t ch) {
 }
 
 // Write a character to the frame buffer
-static void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch) {
+void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch) {
     if (x > OLED_WIDTH - 8 || y > OLED_HEIGHT - 8) return; // Check bounds
 
     y = y / 8; // Adjust y for character height
@@ -245,7 +249,7 @@ static void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8
 }
 
 // Write a string to the frame buffer
-static void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str) {
+void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str) {
     if (x > OLED_WIDTH - 8 || y > OLED_HEIGHT - 8) return; // Check bounds
     while (*str) {
         OLED_WriteChar(frame, x, y, *str++); // Write each character
@@ -254,7 +258,7 @@ static void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, cha
 }
 
 // Draw a function on the OLED by sampling y values
-static void OLED_DrawFun(uint8_t *frame, func f, uint8_t x) {
+void OLED_DrawFun(uint8_t *frame, func f, uint8_t x) {
     for (uint8_t i = x; i < 128 - x; i++) {
         uint8_t y_val = f(i); // Get y value from function
         if (y_val >= 0 && y_val < 64) {

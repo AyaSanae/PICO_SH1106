@@ -2,8 +2,6 @@
 #define __SH1106
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <hardware/dma.h>
 
 #define OLED_WIDTH  128
 #define OLED_HEIGHT 64
@@ -42,8 +40,6 @@
 #define OLED_PAGES                      _u(8)
 #define FRAME_NUM                          2
 
-dma_channel_config OLED_dma_config;
-int OLED_dma_chan;
 
 typedef struct{
     uint8_t frame[OLED_SIZE_BYTE];
@@ -55,25 +51,23 @@ typedef uint8_t (*func)(uint16_t);
 
 
 void OLED_Init(void);
-static inline void OLED_initFrame(uint8_t *frame);
-static void OLED_Clear();
-static void OLED_RenderFrame(uint8_t *frame);
-static inline void OLED_RenderFrame_DMA(uint8_t *frame);
-static inline void OLED_RenderFrame_DMA_Clear(uint8_t *frame);
-void OLED_WriteCmdList(uint8_t *list,unsigned int num);
-void OLED_CheckFrame_print(const uint8_t *frame);
+void OLED_initFrame(uint8_t *frame);
+void OLED_Clear();
+void OLED_RenderFrame(uint8_t *frame);
+void OLED_RenderFrame_DMA_Clear(uint8_t *frame);
+void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch);
+void OLED_DrawFun(uint8_t *frame,func f,uint8_t x);
+void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str);
+void OLED_RenderArray(uint8_t *buf,uint16_t num);
+void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_t x1, int_fast16_t y1, uint8_t on);
 static inline int OLED_WriteCmd(uint8_t cmd);
-static inline int_fast16_t OLED_GetFontIndex(uint8_t ch);
-static void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch);
-static void OLED_DrawFun(uint8_t *frame,func f,uint8_t x);
-static void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str);
-static void OLED_RenderArray(uint8_t *buf,uint16_t num);
+static inline void OLED_DMA_INIT();
 static inline void OLED_Set_Page(uint8_t page);
 static inline void OLED_Fill_Screen_Pure(uint8_t clo);
+static inline void OLED_RenderFrame_DMA(uint8_t *frame);
+static inline int_fast16_t OLED_GetFontIndex(uint8_t ch);
+static inline void OLED_WriteCmdList(uint8_t *list,unsigned int num);
 static inline void OLED_setPixel(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t on);
-static inline void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_t x1, int_fast16_t y1, uint8_t on);
-
-static inline void OLED_DMA_INIT();
 
 static inline int_fast16_t tool_Fast_abs(int_fast16_t t);
 #endif // !__SH1106

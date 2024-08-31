@@ -144,7 +144,7 @@ void OLED_RenderFrame(uint8_t *frame) {
 }
 
 // DMA version of rendering the frame
-static inline void OLED_RenderFrame_DMA(uint8_t *frame) {
+void OLED_RenderFrame_DMA(uint8_t *frame) {
     if (!frame) return; // Check for valid frame
 
     uint8_t *buf0 = malloc(OLED_WIDTH + 1); // Allocate buffer
@@ -190,7 +190,7 @@ void OLED_initFrame(uint8_t *frame) {
 }
 
 // Set a pixel in the frame buffer
-static inline void OLED_setPixel(uint8_t *frame, int_fast8_t x, int_fast8_t y, uint8_t on) {
+void OLED_setPixel(uint8_t *frame, int_fast8_t x, int_fast8_t y, uint8_t on) {
     assert(x >= 0 && x < OLED_WIDTH && y >= 0 && y < OLED_HEIGHT); // Check pixel bounds
     uint16_t index = (y / 8) * OLED_WIDTH + x; // Calculate index in buffer
     uint8_t *target_pixel_col = &frame[index]; // Get pointer to target pixel column

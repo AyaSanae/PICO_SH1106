@@ -14,8 +14,6 @@
 #include <math.h>
 #include "hardware/dma.h"
 
-dma_channel_config OLED_dma_config;
-int OLED_dma_chan;
 
 // Function to get the absolute value of a signed integer
 static inline int_fast16_t tool_Fast_abs(int_fast16_t t) {
@@ -52,8 +50,6 @@ void OLED_Init(void) {
     sleep_ms(20); // Wait for the display to initialize
     OLED_WriteCmd(OLED_DISPLAY_ON); // Turn on the display
 
-    // Initialize DMA for frame transfer
-    OLED_DMA_INIT();
 }
 
 // Write a single command to the OLED
@@ -151,6 +147,12 @@ void OLED_RenderFrame_DMA(uint8_t *frame) {
     if (!buf0) return; // Check for allocation failure
     buf0[0] = 0x40; // Data command
 
+    int OLED_dma_chan = dma_claim_unused_channel(1); // Claim an unused DMA channel
+    dma_channel_config OLED_dma_config = dma_channel_get_default_config(OLED_dma_chan); // Get the default channel config
+    channel_config_set_transfer_data_size(&OLED_dma_config, DMA_SIZE_8); // Set data size
+    channel_config_set_read_increment(&OLED_dma_config, true); // Enable read address increment
+    channel_config_set_write_increment(&OLED_dma_config, true); // Enable write address increment
+
     dma_channel_configure(
         OLED_dma_chan,
         &OLED_dma_config,
@@ -167,7 +169,9 @@ void OLED_RenderFrame_DMA(uint8_t *frame) {
         dma_channel_set_read_addr(OLED_dma_chan, frame + page * OLED_WIDTH, false); // Set next read address
         dma_channel_set_write_addr(OLED_dma_chan, buf0 + 1, true); // Set buffer write address
     }
-
+    
+    dma_channel_cleanup(OLED_dma_chan);
+    dma_channel_unclaim(OLED_dma_chan);
     free(buf0); // Free allocated memory
 }
 
@@ -294,11 +298,3 @@ static void OLED_DrawCircle(uint8_t *frame, int16_t centerX, int16_t centerY, ui
     }
 }
 
-// Initialize the DMA for OLED rendering
-static inline void OLED_DMA_INIT() {
-    OLED_dma_chan = dma_claim_unused_channel(1); // Claim an unused DMA channel
-    OLED_dma_config = dma_channel_get_default_config(OLED_dma_chan); // Get the default channel config
-    channel_config_set_transfer_data_size(&OLED_dma_config, DMA_SIZE_8); // Set data size
-    channel_config_set_read_increment(&OLED_dma_config, true); // Enable read address increment
-    channel_config_set_write_increment(&OLED_dma_config, true); // Enable write address increment
-}

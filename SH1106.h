@@ -65,7 +65,6 @@ void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_
 
 
 static inline int OLED_WriteCmd(uint8_t cmd);
-static inline void OLED_DMA_INIT();
 static inline void OLED_Set_Page(uint8_t page);
 static inline void OLED_Fill_Screen_Pure(uint8_t clo);
 static inline int_fast16_t OLED_GetFontIndex(uint8_t ch);

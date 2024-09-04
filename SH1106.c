@@ -252,6 +252,20 @@ void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch) 
     }
 }
 
+//Lower the character as a whole by one pixel
+void OLED_WriteChar_fix(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch) {
+    if (x > OLED_WIDTH - 8 || y > OLED_HEIGHT - 8) return; // Check bounds
+
+    y = y / 8; // Adjust y for character height
+    ch = toupper(ch); // Convert to uppercase
+    int_fast16_t idx = OLED_GetFontIndex(ch); // Get font index
+    int_fast16_t fb_idx = y * 128 + x; // Calculate frame buffer index
+
+    for (int i = 0; i < 8; i++) {
+        frame[fb_idx++] = font[idx * 8 + i] << 1; // Copy font(lower the character as a whole by one pixel) data to frame
+    }
+}
+
 // Write a string to the frame buffer
 void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str) {
     if (x > OLED_WIDTH - 8 || y > OLED_HEIGHT - 8) return; // Check bounds

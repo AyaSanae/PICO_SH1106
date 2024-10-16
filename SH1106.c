@@ -7,7 +7,9 @@
 #include "hardware/i2c.h"
 #include "hardware/clocks.h"
 #include "pico/time.h"
+#include "pico/types.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -275,13 +277,19 @@ void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str)
     }
 }
 
-// Draw a function on the OLED by sampling y values
-void OLED_DrawFun(uint8_t *frame, func f, uint8_t x) {
-    for (uint8_t i = x; i < 128 - x; i++) {
-        uint8_t y_val = f(i); // Get y value from function
-        if (y_val >= 0 && y_val < 64) {
-            OLED_setPixel(frame, i, y_val, 1); // Set the pixel if within bounds
-        }
+// Draw a function on the OLED 
+void OLED_DrawFun(uint8_t *frame,func f,uint8_t x1,uint8_t x2){
+    uint8_t y_val[OLED_WIDTH];
+    memset(y_val,0x00,OLED_WIDTH);
+    uint8_t x = x1;
+    for(int i = 0;x != x2;x++,i++){
+        y_val[i] = f(x);
+    }
+
+    for(int i = 0; i <OLED_WIDTH; i++){
+        uint8_t y = y_val[i];
+        if(y <= OLED_HEIGHT)
+           OLED_setPixel(frame,i,y,1);
     }
 }
 

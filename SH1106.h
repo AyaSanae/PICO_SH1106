@@ -59,7 +59,7 @@ void OLED_RenderFrame_DMA_Clear(uint8_t *frame);
 void OLED_setPixel(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t on);
 void OLED_WriteChar(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch);
 void OLED_WriteChar_fix(uint8_t *frame, int_fast16_t x, int_fast16_t y, uint8_t ch);
-void OLED_DrawFun(uint8_t *frame,func f,uint8_t x);
+void OLED_DrawFun(uint8_t *frame,func f,uint8_t x1,uint8_t x2);
 void OLED_WriteString(uint8_t *frame, int_fast16_t x, int_fast16_t y, char *str);
 void OLED_RenderArray(uint8_t *buf,uint16_t num);
 void OLED_DrawLine(uint8_t *frame, int_fast16_t x0, int_fast16_t y0, int_fast16_t x1, int_fast16_t y1, uint8_t on);
